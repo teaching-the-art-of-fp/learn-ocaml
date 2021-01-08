@@ -907,6 +907,9 @@ module Editor_button (E : Editor_info) = struct
     let exercise_id = match Url.Current.path with
       | "" :: "exercises" :: p | "exercises" :: p ->
           String.concat "/" (List.map Url.urldecode (List.filter ((<>) "") p))
+      | "" :: "playground" :: p | "exercises" :: p ->
+          String.concat "/" (List.map Url.urldecode (List.filter ((<>) "") p))
+      | exception Not_found -> "other"
       | _ -> arg "id"
     in
     let url = Js.string @@  Js.to_string (eval_unsafe "window.location.protocol") ^
