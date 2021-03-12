@@ -7,7 +7,8 @@ const compile_collection = process.env.COMP_COLLECTION;
 const eval_collection = process.env.EVAL_COLLECTION;
 const mongoose = require('mongoose');
 
-app.use(bodyParser.text({ type: "application/json" }));
+// app.use(bodyParser.text({ type: "application/json" }));
+app.use(bodyParser.json());
 
 // connect to database
 // mongoose.connect('mongodb://172.17.0.1/learn-ocaml-code');
@@ -28,10 +29,9 @@ app.post("/grade", function (req, res)
 {
   if (req.body)
   {
-    const raw_array = req.body;
-    const split_array = raw_array.split(",");
-    const collection = JSON.parse(split_array[3]);
-    let parsedSolStr = split_array.slice(4).join(' ').slice(0, -1);
+    const split_array = req.body;
+    const collection = split_array[3];
+    let parsedSolStr = split_array[4];
     const obj = new Object();
     obj.studentId = split_array[1];
     obj.timestamp = new Date().toString();
@@ -54,10 +54,9 @@ app.post("/compile", function (req, res)
 {
   if (req.body)
   {
-    const raw_array = req.body;
-    const split_array = raw_array.split(",");
-    const collection = JSON.parse(split_array[3]);
-    let parsedSolStr = split_array.slice(4).join(' ').slice(0, -1);
+    const split_array = req.body;
+    const collection = split_array[3];
+    let parsedSolStr = split_array[4];
     const obj = new Object();
     obj.studentId = split_array[1];
     obj.timestamp = new Date().toString();
@@ -78,15 +77,13 @@ app.post("/eval", function (req, res)
 {
   if (req.body)
   {
-    const raw_array = req.body;
-    const split_array = raw_array.split(",");
-    const collection = JSON.parse(split_array[3]);
-    const parsedSolStr = split_array.slice(4).join(' ').slice(0, -1);
+    const split_array = req.body;
+    const collection = split_array[3];
+    let parsedSolStr = split_array[4];
     const obj = new Object();
     obj.studentId = split_array[1];
     obj.timestamp = new Date().toString();
     obj.solution = parsedSolStr;
-
     const jsonString = JSON.stringify(obj);
     const solution = JSON.parse( jsonString ); // parse req.body as an object
     db.collection(collection).insertOne(solution);
