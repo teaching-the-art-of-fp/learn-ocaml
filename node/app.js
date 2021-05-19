@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const app = express();
 const database = process.env.DB_CONN;
 const port = process.env.PORT;
@@ -7,8 +6,7 @@ const compile_collection = process.env.COMP_COLLECTION;
 const eval_collection = process.env.EVAL_COLLECTION;
 const mongoose = require('mongoose');
 
-// app.use(bodyParser.text({ type: "application/json" }));
-app.use(bodyParser.json());
+app.use(express.json());
 
 // connect to database
 // mongoose.connect('mongodb://172.17.0.1/learn-ocaml-code');
