@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const app = express();
 const database = process.env.DB_CONN;
 const port = process.env.PORT;
@@ -7,8 +6,16 @@ const compile_collection = process.env.COMP_COLLECTION;
 const eval_collection = process.env.EVAL_COLLECTION;
 const mongoose = require('mongoose');
 
-// app.use(bodyParser.text({ type: "application/json" }));
-app.use(bodyParser.json());
+const Joi = require("joi");
+
+const mongoSolutionSchema = Joi.object({
+  student_id: Joi.string(),
+  timestamp: Joi.string(),
+  collection: Joi.string(),
+  student_solution: Joi.string()
+}).options({presence: 'required'});
+
+app.use(express.json());
 
 // connect to database
 // mongoose.connect('mongodb://172.17.0.1/learn-ocaml-code');
@@ -24,79 +31,29 @@ app.use(function(req, res, next) {
     next();
   });
 
-
-app.post("/grade", function (req, res)
-{
-  if (req.body)
-  {
-    const split_array = req.body;
-    const collection = split_array[3];
-    let parsedSolStr = split_array[4];
-    const obj = new Object();
-    obj.studentId = split_array[1];
-    obj.timestamp = new Date().toString();
-    obj.solution = parsedSolStr;
-    const jsonString = JSON.stringify(obj);
-    const solution = JSON.parse( jsonString ); // parse req.body as an object
+const requestHandler = (req, res) => {
+  const { error, value } = mongoSolutionSchema.validate(req.body);
+  if (!error) {
+    const { student_id, collection, student_solution } = value;
+    const solution = {
+      studentId: student_id,
+      timestamp: new Date().toString(),
+      solution: student_solution
+    };
     db.collection(collection).insertOne(solution);
     console.log(solution);
-    res.sendStatus(200); // success status
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(400);
   }
-  else
-  {
-    res.sendStatus(400); // error status
-  }
-});
+}
 
+app.post("/grade", requestHandler);
 
 // receive the POST from the client javascript file
-app.post("/compile", function (req, res)
-{
-  if (req.body)
-  {
-    const split_array = req.body;
-    const collection = split_array[3];
-    let parsedSolStr = split_array[4];
-    const obj = new Object();
-    obj.studentId = split_array[1];
-    obj.timestamp = new Date().toString();
-    obj.solution = parsedSolStr;
-    const jsonString = JSON.stringify(obj);
-    const solution = JSON.parse( jsonString ); // parse req.body as an object
-    db.collection(collection).insertOne(solution);
-    console.log(solution);
-    res.sendStatus(200); // success status
-  }
-  else
-  {
-    res.sendStatus(400); // error status
-  }
-});  
+app.post("/compile", requestHandler);  
 
-app.post("/eval", function (req, res)
-{
-  if (req.body)
-  {
-    const split_array = req.body;
-    const collection = split_array[3];
-    let parsedSolStr = split_array[4];
-    const obj = new Object();
-    obj.studentId = split_array[1];
-    obj.timestamp = new Date().toString();
-    obj.solution = parsedSolStr;
-    const jsonString = JSON.stringify(obj);
-    const solution = JSON.parse( jsonString ); // parse req.body as an object
-    db.collection(collection).insertOne(solution);
-    console.log(solution);
-    res.sendStatus(200); // success status
-  }
-  else
-  {
-    res.sendStatus(400); // error status
-  }
-});  
-
-
+app.post("/eval", requestHandler);  
 
 app.listen(port, () => {
   console.log(`Server running on port${port}`);
